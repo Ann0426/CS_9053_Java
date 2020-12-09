@@ -11,6 +11,11 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +65,14 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	int Grandtotal = 0;
 	int Bonus = 0;
 	String host = "localhost";
+	JPanel panelLoadGame ;
+	JLabel scoreId, player;
+	JButton LoadGame;
+	JTextField scoreIdtxt, playertxt;
+	String loadname;
+	int score_id;
+	LoadGame LG;
+	ResultSet rs ;
 
 	
 
@@ -321,17 +334,55 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	    
 	public JMenuItem createLoadItem(final String name)
 	   {
-	      JMenuItem item = new JMenuItem(name);      
+	      JMenuItem item3 = new JMenuItem(name);      
 	      class MenuItemListener implements ActionListener
 	      {
 	         public void actionPerformed(ActionEvent event)
 	         {
-	        	 System.out.print('h');
+	        	 JFrame frame=new JFrame("Load Game");
+	        	 JPanel panelLoadGame = new JPanel();
+	        	 scoreId = new JLabel("Enter Game Record Id:");
+	        	 scoreIdtxt = new JTextField(10);
+	        	 player = new JLabel("Enter Player Name:");
+	        	 playertxt = new JTextField(10);
+	        	
+	        	 LoadGame = new JButton("Load Game");
+	  	       class AddButtonListener implements ActionListener
+	  	       {
+	  	          public void actionPerformed(ActionEvent event)
+	  	          {  
+	  	        	 if (scoreIdtxt.getText().equals("") |playertxt.getText().equals("") ) {createMessageBox("Must filled in player name and id");}
+	  	        	 else {loadname = playertxt.getText() ;
+	  	      	  	score_id = Integer.parseInt(scoreIdtxt.getText());
+	  	      	  	
+	  	      	  	System.out.print(loadname);
+	  	      
+	  	      	  	LG = new LoadGame( loadname,score_id);
+	  	      	getScoreRecord();
+	  	        	 }
+	  	          }
+	  	       }
+	  	       ActionListener listener = new AddButtonListener();
+	  	      LoadGame.addActionListener(listener);
+	  	       JPanel RollButpanel = new JPanel();
+	  	       RollButpanel.add(LoadGame);
+	  	     panelLoadGame.add(scoreId ); panelLoadGame.add(scoreIdtxt);
+	  	     panelLoadGame.add(player  );panelLoadGame.add(playertxt  );
+	  	   panelLoadGame.add(RollButpanel  );
+	  	       frame.add(panelLoadGame);
+//	             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	             //set JFrame ssize
+	             frame.setSize(200,250);
+	             //make JFrame visible. So we can see it
+	             frame.setVisible(true);
+	          
+
+	       
 	         }
 	      }      
 	      ActionListener listener = new MenuItemListener();
-	      item.addActionListener(listener);
-	      return item;
+	      item3.addActionListener(listener);
+	      return item3;
 	   }
 	public JMenuItem createSaveItem(final String name)
 	   {
@@ -475,8 +526,90 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 //            return false;    
 //        }
 //    }
+	public void getScoreRecord()
+	{
+		try
+		{
 
+			Connection con = DriverManager.getConnection
+				      ("jdbc:sqlite:yahtzee.db");
+			String sql = "Select * from ScoreRecord where Player = ? and score_id = ? ";
+			
+			PreparedStatement statement = con.prepareStatement(sql);
+			statement.setString(1,LG.loadname);
+			statement.setLong(2,LG.score_id);
+			System.out.println( "nameLG:" +  LG.loadname);
+			System.out.println( "scoreLG:" +  LG.score_id);
+
+			rs = statement.executeQuery();
+		
+			if (rs != null) {
+				System.out.println( "populate controls try");
+				 populateRecord();
+				
+			}
+			
+
+					
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			System.out.println( "populate controls");
+		}
+		
+		
+	}
+	public void populateRecord()
+	{  
+		try {
+			System.out.print(rs.getLong("Ace"));
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if (LG.loadname != null) {
+			try {
+				System.out.print(rs);
+				nameField.setText( rs.getString("Player"));
+				AceTxt.setText("Score: " + rs.getLong("Ace"));
+				TwosTxt.setText("Score: " + rs.getLong("Two"));
+				ThreesTxt.setText("Score: " + rs.getLong("Three"));
+				
+	 	  		 FoursTxt.setText("Score: " + rs.getLong("Four"));
+	 	  		 FivesTxt.setText("Score: " + rs.getLong("Five"));
+	 	  		 SixesTxt.setText("Score: " + rs.getLong("Six"));
+	 	  		 UpScoreTxt.setText("Score: " +  rs.getLong("UpSubtotal"));
+	 	  		 UpBonusTxt.setText("Score: " + rs.getLong("Bonus"));
+	 	  		 UpGrandTxt.setText("Score: " + rs.getLong("UpTotal"));
+	 	  		 
+	 	  		 ThreeOfKindTxt.setText("Score: " + rs.getLong("ThreeOfKind"));
+	 	  	     FourOfKindTxt.setText("Score: " + rs.getLong("FourOfKind"));
+	 	  	     FullTxt.setText("Score: " + rs.getLong("Full"));
+	 	  	     SmallTxt.setText("Score: " + rs.getLong("Small"));
+	 	  	     LargeTxt.setText("Score: " + rs.getLong("Large"));
+	 	  	     YahtzeeTxt.setText("Score: " + rs.getLong("Yahtzee"));
+	 	  	     BonTxt.setText("Score: " +  rs.getLong("YahtzeeBonus"));
+	 	  	     lowSecTxt.setText("Score: " + rs.getLong("lowerSectionTotal"));
+	 	  	     GraToTxt.setText("Score: " +  rs.getLong("GrandTotal"));
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+ 	  	
 	
+
+
+		}
+	}
+	private void createMessageBox(String msg)
+	{
+		JFrame frame = new JFrame("Result");
+		JLabel lbl = new JLabel(msg);
+		frame.add(lbl);
+		frame.setSize(200,200);
+		frame.setVisible(true);
+	}
 	public static void main(String args[]) {
 		YahtzeeFrame yahtzee = new YahtzeeFrame();
 		
