@@ -241,7 +241,7 @@ public class SaveServer extends JFrame {
 			if (rs != null) {
 //				System.out.println( "populate controls try");
 
-				''populateRecord();
+				populateRecord();
 				
 			}
 			
@@ -262,15 +262,7 @@ public class SaveServer extends JFrame {
 		if (LG.loadname != null) {
 			System.out.println( "name:" +  LG.loadname);
 			System.out.println( "ace:" +  LG.score_id);
-//			lblfVal.setText(rs.getString("fName"));
-//			lbllVal.setText(rs.getString("lName"));
-//			lblaVal.setText(rs.getString("Address"));
-//			lblsVal.setText(rs.getString("Salary"));
-//		
-//			txtFname.setText(lblfVal.getText());
-//			txtLname.setText(lbllVal.getText());
-//			txtAddress.setText(lblaVal.getText());
-//			txtSalary.setText(lblsVal.getText());
+
 		}
 	}
 	public void createMainPanel() {

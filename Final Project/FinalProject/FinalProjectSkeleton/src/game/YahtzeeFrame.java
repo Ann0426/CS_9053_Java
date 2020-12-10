@@ -3,9 +3,11 @@ package game;
 import java.awt.BorderLayout;
 import java.awt.EtchedBorder;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -30,6 +32,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
@@ -73,6 +77,8 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	int score_id;
 	LoadGame LG;
 	ResultSet rs ;
+	JTextArea RecordBox;
+	JFrame frameList;
 
 	
 
@@ -239,9 +245,13 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	       class AddButtonListener implements ActionListener
 	       {
 	          public void actionPerformed(ActionEvent event)
-	          {   count++;
+	          {   
+	        	  count++;
       	  			if (count>= 4) {
     	  			JOptionPane.showMessageDialog(null,"Maximum 3 times");
+    	  		
+    	  			count = 0;
+    	  			nameField.setText("");
       	  			}
       	  			else {
 
@@ -345,6 +355,8 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	        	 scoreIdtxt = new JTextField(10);
 	        	 player = new JLabel("Enter Player Name:");
 	        	 playertxt = new JTextField(10);
+	        	 createRecordListPanel();
+	        	
 	        	
 	        	 LoadGame = new JButton("Load Game");
 	  	       class AddButtonListener implements ActionListener
@@ -353,22 +365,25 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	  	          {  
 	  	        	 if (scoreIdtxt.getText().equals("") |playertxt.getText().equals("") ) {createMessageBox("Must filled in player name and id");}
 	  	        	 else {loadname = playertxt.getText() ;
-	  	      	  	score_id = Integer.parseInt(scoreIdtxt.getText());
+	  	      	  	 score_id = Integer.parseInt(scoreIdtxt.getText());
 	  	      	  	
-	  	      	  	System.out.print(loadname);
+	  	      	  	 System.out.print(loadname);
 	  	      
-	  	      	  	LG = new LoadGame( loadname,score_id);
-	  	      	getScoreRecord();
+	  	      	  	 LG = new LoadGame( loadname,score_id);
+	  	      	     getScoreRecord();
+	  	      	 frame.dispose();
+	  	      	frameList.dispose();
+	  	      	 
 	  	        	 }
 	  	          }
 	  	       }
 	  	       ActionListener listener = new AddButtonListener();
-	  	      LoadGame.addActionListener(listener);
+	  	       LoadGame.addActionListener(listener);
 	  	       JPanel RollButpanel = new JPanel();
 	  	       RollButpanel.add(LoadGame);
-	  	     panelLoadGame.add(scoreId ); panelLoadGame.add(scoreIdtxt);
-	  	     panelLoadGame.add(player  );panelLoadGame.add(playertxt  );
-	  	   panelLoadGame.add(RollButpanel  );
+	  	       panelLoadGame.add(scoreId ); panelLoadGame.add(scoreIdtxt);
+	  	       panelLoadGame.add(player  );panelLoadGame.add(playertxt  );
+	  	       panelLoadGame.add(RollButpanel  );
 	  	       frame.add(panelLoadGame);
 //	             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	             //set JFrame ssize
@@ -542,12 +557,17 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 			System.out.println( "scoreLG:" +  LG.score_id);
 
 			rs = statement.executeQuery();
+			if(!rs.isBeforeFirst()){
+				JOptionPane.showMessageDialog(null,"No such name or id");
+			}
 		
 			if (rs != null) {
 				System.out.println( "populate controls try");
 				 populateRecord();
 				
 			}
+			try { con.close(); } catch (Exception e) { /* ignored */ }
+			
 			
 
 					
@@ -559,7 +579,49 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 		}
 		
 		
+	
+			
+		
 	}
+	public void getAllScoreRecord()
+	{
+		try
+		{
+
+			Connection con = DriverManager.getConnection
+				      ("jdbc:sqlite:yahtzee.db");
+			String sql = "Select Player, score_id from ScoreRecord ";
+			
+			PreparedStatement statement1 = con.prepareStatement(sql);
+			rs = statement1.executeQuery();
+			if(!rs.isBeforeFirst()){
+				JOptionPane.showMessageDialog(null,"No records");
+			}
+			while(rs.next() && !rs.isAfterLast())//After Last was giving invalid cursor state error
+			{
+				try {
+					System.out.print("123:" + rs.getLong("score_id"));
+					RecordBox.append("Game_id:" + rs.getLong("score_id") + "  "+"Player:" + rs.getString("Player")+"\n" );
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			 try { con.close(); } catch (Exception e) { /* ignored */ }
+			
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			System.out.println( "populate controls");
+		}
+	
+			
+		
+		
+	}
+	
 	public void populateRecord()
 	{  
 		try {
@@ -601,6 +663,29 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 
 
 		}
+	}
+	public void createRecordListPanel() {
+		frameList=new JFrame("List of Game Record");
+		 RecordBox = new JTextArea(250,250);
+		 RecordBox.setEditable(false);
+//		 JPanel panelLoadGame = new JPanel();
+//		 panelLoadGame.add(RecordBox);
+
+//		frameList.add(panelLoadGame);
+		JScrollPane areaScrollPane = new JScrollPane(RecordBox);
+		areaScrollPane.setVerticalScrollBarPolicy(
+		                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		areaScrollPane.setPreferredSize(new Dimension(250, 250));
+		frameList.setVisible(true);
+		frameList.getContentPane().add(areaScrollPane, BorderLayout.CENTER);
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		frameList.setSize(250,250);
+		frameList.setLocation(dim.width/2-this.getSize().width/2, dim.height/2-this.getSize().height/2);
+		RecordBox.append("List of the Records:\n");
+		getAllScoreRecord();
+	
+	
+
 	}
 	private void createMessageBox(String msg)
 	{
