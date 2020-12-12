@@ -1,7 +1,6 @@
 package game;
 
 import java.awt.BorderLayout;
-import java.awt.EtchedBorder;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -10,6 +9,7 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -18,11 +18,15 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
+import javax.swing.event.EventListenerList;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -32,6 +36,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -39,8 +44,8 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-import graphics.ImagePanel;
-import student.StudentAddress;
+
+
 
 
 
@@ -49,7 +54,8 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	private JLabel playerName, UpScore,UpBonus,UpGrand, YahBon,TotalLowSec,GrandTotal;
 	private JTextField nameField;
     private JLabel AceTxt, TwosTxt, ThreesTxt, FoursTxt, FivesTxt, SixesTxt,UpScoreTxt,UpBonusTxt,UpGrandTxt, ThreeOfKindTxt,FourOfKindTxt,FullTxt,SmallTxt,LargeTxt ,YahtzeeTxt,BonTxt,lowSecTxt,GraToTxt;
-    private JButton AcesBut, TwosBut, ThreesBut, FoursBut, FivesBut, SixesBut,ThreeOfKind,FourOfKind,Full,Small,Large,Yahtzee;
+    private JButton AcesBut, TwosBut, ThreesBut, FoursBut, FivesBut, SixesBut;
+    private JRadioButton ThreeOfKind,FourOfKind,Full,Small,Large,Yahtzee;
     private JButton keep1,keep2,keep3,keep4,keep5,Roll;
     private JCheckBox keep1CheckBox,keep2CheckBox,keep3CheckBox,keep4CheckBox,keep5CheckBox;
     ImagePanel imagePanel1, imagePanel2, imagePanel3, imagePanel4,imagePanel5;
@@ -60,8 +66,8 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	int max = 6;
 	int min = 1;
 	int[] random_int = new int[N_DICE]; 
-	int count = 0 ;
-	int[] scorecard;
+	int count = 0 ,lowbonus = 0,grandTotal ;
+	
 	static int[] categoriesScore = new int[N_SCORING_CATEGORIES];
 	int BONUS_VALUE = 35;
 	int BONUS_THRESHOLD = 63;
@@ -79,6 +85,7 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	ResultSet rs ;
 	JTextArea RecordBox;
 	JFrame frameList;
+
 
 	
 
@@ -158,14 +165,50 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	       UpperLeftpanel.add(UpGrand);
 	       UpperLeftpanel.add(UpGrandTxt);
 	    
-	       ThreeOfKind = new JButton("3 of a kind");
-	       FourOfKind = new JButton("4 of a kind");
-	       Full = new JButton("Full House");
-	       Small = new JButton("Small Straight");
-	       Large = new JButton("Large Straight");
-	       Yahtzee = new JButton("Yahtzee");
+	       
+	       class ChoiceListener implements ActionListener
+	       {  
+	          public void actionPerformed(ActionEvent event)
+	          {  
+	        	  if (ThreeOfKind.isSelected()) { 
+	     			 grandTotal = categoriesScore[6] + sum;}
+	        	    
+	     	      else if (FourOfKind.isSelected()) 
+	     	    	  {grandTotal =  categoriesScore[7] + sum;}
+	     	      else if (Full.isSelected()) 
+	     	    	  {grandTotal =  categoriesScore[8] + sum;}
+	     	      else if (Small.isSelected()) 
+	     	    	  {grandTotal =  categoriesScore[9] + sum;}
+	     	      else if (Large.isSelected()) 
+	     	    	  {grandTotal =  categoriesScore[10] + sum;}
+	     	      else if (Yahtzee.isSelected()) 
+	     	    	  {grandTotal =  categoriesScore[11] + sum;}
+	        	  GraToTxt.setText("Score: " +  grandTotal);
+	          }
+	       }
+	    
+	       ActionListener listener = new ChoiceListener();
+	       ThreeOfKind =new JRadioButton("3 of a kind");	
+	       ThreeOfKind.addActionListener(listener);
+	       FourOfKind = new JRadioButton("4 of a kind");
+	       FourOfKind.addActionListener(listener);
+	       Full = new JRadioButton("Full House");
+	       Full.addActionListener(listener);
+	       Small = new JRadioButton("Small Straight");
+	       Small.addActionListener(listener);
+	       Large = new JRadioButton("Large Straight");
+	       Large.addActionListener(listener);
+	       Yahtzee = new JRadioButton("Yahtzee");
+	       Yahtzee.addActionListener(listener);
+	       ButtonGroup group = new ButtonGroup();
+	       group.add(ThreeOfKind);
+	       group.add(FourOfKind);
+	       group.add(Full);
+	       group.add(Small);
+	       group.add(Large);
+	       group.add(Yahtzee);
 	       YahBon = new JLabel("Yahtzee Bonus ");
-	       TotalLowSec = new JLabel("Total of lower section");
+	       TotalLowSec = new JLabel("Sum of lower section dice ");
 	       GrandTotal = new JLabel("Grand Total ");
 	       ThreeOfKindTxt = new JLabel();
 	       FourOfKindTxt = new JLabel();
@@ -173,6 +216,9 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	       SmallTxt = new JLabel();
 	       LargeTxt = new JLabel();
 	       YahtzeeTxt = new JLabel();
+	       
+	   
+  	       
 	       BonTxt = new JLabel();
 	       lowSecTxt = new JLabel();
 	       GraToTxt = new JLabel();
@@ -306,18 +352,16 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
       	  		 UpBonusTxt.setText("Score: " + Bonus(sum));
       	  		 UpGrandTxt.setText("Score: " + Grandtotal);
       	  		 
-      	  		 ThreeOfKindTxt.setText("Score: " + AcesScore(random_int));
-      	  	     FourOfKindTxt.setText("Score: " + TwosScore(random_int));
-      	  	     FullTxt.setText("Score: " + ThreesScore(random_int));
-      	  	     SmallTxt.setText("Score: " + FoursScore(random_int));
-      	  	     LargeTxt.setText("Score: " + FivesScore(random_int));
-      	  	     YahtzeeTxt.setText("Score: " + SixsScore(random_int));
-      	  	     BonTxt.setText("Score: " +  UpScore(random_int));
-      	  	     lowSecTxt.setText("Score: " + Bonus(sum));
-      	  	     GraToTxt.setText("Score: " +  Grandtotal);
-     	  	
-      	  	
-	          }            
+      	  		 ThreeOfKindTxt.setText("Score: " + ThreeOfKind(random_int));
+      	  	     FourOfKindTxt.setText("Score: " + FourOfKind(random_int));
+      	  	     FullTxt.setText("Score: " + Full(random_int));
+      	  	     SmallTxt.setText("Score: " + small(random_int));
+      	  	     LargeTxt.setText("Score: " + Large(random_int));
+      	  	     YahtzeeTxt.setText("Score: " + Yahtzee(random_int));
+      	  	     BonTxt.setText("Score: " + lowbonus);
+      	  	     lowSecTxt.setText("Score: " +chance(random_int));
+      	  	     GraToTxt.setText("Score: " +  sum );
+	          }
 	       }
 	 
 	       ActionListener listener = new AddButtonListener();
@@ -420,7 +464,7 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	        	          new ScoreRecord( nameFieldStr,categoriesScore[0], categoriesScore[1], categoriesScore[2]
 	        	        		  ,categoriesScore[3],
 	        	        		  categoriesScore[4],
-	        	        		  categoriesScore[5],sum,Bonus,Grandtotal,0,0,0,0,0,0,0,0,0);
+	        	        		  categoriesScore[5],sum,Bonus,Grandtotal,categoriesScore[6],categoriesScore[7],categoriesScore[8],categoriesScore[9],categoriesScore[10],categoriesScore[11],lowbonus,categoriesScore[12],grandTotal);
 	        	        toServer.writeObject(s);
 	        	      }
 	        	      catch (IOException ex) {
@@ -695,6 +739,134 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 		frame.setSize(200,200);
 		frame.setVisible(true);
 	}
+	public  int ThreeOfKind(int[] random_int) {
+		categoriesScore[6] = 0;
+		int[] arr = new int[]{0,0,0,0,0,0};
+		for (int i = 0;i < 5; i++) {
+			arr[ random_int[i]-1 ]+=1;			
+		}
+		 int max = getMaxValue(arr);
+		 if (max >=3) {
+			 for(int i = 0;i < 5; i++) {
+				 categoriesScore[6] += random_int[i];
+			 }
+		 }
+		
+		return categoriesScore[6];
+	}
+	public  int FourOfKind(int[] random_int) {
+		categoriesScore[7] = 0;
+		int[] arr = new int[]{0,0,0,0,0,0};
+		for (int i = 0;i < 5; i++) {
+			arr[ random_int[i]-1 ]+=1;			
+		}
+		 int max = getMaxValue(arr);
+		 if (max >=4) {
+			 for(int i = 0;i < 5; i++) {
+				 categoriesScore[7] += random_int[i];
+			 }
+		 }
+		
+		return categoriesScore[7];
+	}
+	public  int Full(int[] random_int) {
+		categoriesScore[8] = 0;
+		int[] arr = new int[]{0,0,0,0,0,0};
+		for (int i = 0;i < 5; i++) {
+			arr[ random_int[i]-1 ]+=1;			
+		}
+		 int max = getMaxValue(arr);
+		 int min = getMaxValue(arr);
+		 if (max == 3 && min == 2) {
+			
+				 categoriesScore[8] = 25;
+		 }
+		return categoriesScore[8];
+	}
+	public  int small(int[] random_int) {
+		categoriesScore[9] = 0;
+		Arrays.sort(random_int);
+		for (int j = 0; j < 4; j++)
+		{
+			int temp = 0;
+			if (random_int[j] == random_int[j + 1])
+			{
+				temp = random_int[j];
+
+				for (int k = j; k < 4; k++)
+				{
+					random_int[k] = random_int[k + 1];
+				}
+
+				random_int[4] = temp;
+			}
+		}
+		if (((random_int[0] == 1) && (random_int[1] == 2) && (random_int[2] == 3) && (random_int[3] == 4))
+				|| ((random_int[0] == 2) && (random_int[1] == 3) && (random_int[2] == 4) && (random_int[3] == 5))
+				|| ((random_int[0] == 3) && (random_int[1] == 4) && (random_int[2] == 5) && (random_int[3] == 6))
+				|| ((random_int[1] == 1) && (random_int[2] == 2) && (random_int[3] == 3) && (random_int[4] == 4))
+				|| ((random_int[1] == 2) && (random_int[2] == 3) && (random_int[3] == 4) && (random_int[4] == 5))
+				|| ((random_int[1] == 3) && (random_int[2] == 4) && (random_int[3] == 5) && (random_int[4] == 6)))
+		{
+				 categoriesScore[9] =30;
+		 }
+		return categoriesScore[9];
+	}
+	public  int Large(int[] random_int) {
+		categoriesScore[10] = 0;
+		Arrays.sort(random_int);
+		if (((random_int[0] == 1) && (random_int[1] == 2) && (random_int[2] == 3)
+				&& (random_int[3] == 4) && (random_int[4] == 5))
+				|| ((random_int[0] == 2) && (random_int[1] == 3) && (random_int[2] == 4)
+						&& (random_int[3] == 5) && (random_int[4] == 6)))
+		{
+				 categoriesScore[10] =40;
+		 }
+		return categoriesScore[10];
+	}
+	public  int Yahtzee(int[] random_int) {
+		categoriesScore[11] = 0;
+		int[] arr = new int[]{0,0,0,0,0,0};
+		for (int i = 0;i < 5; i++) {
+			arr[ random_int[i]-1 ]+=1;			
+		}
+		 int max = getMaxValue(arr);
+		 if (max == 5) {
+				
+			 categoriesScore[11] =50;
+			 lowbonus += 10;
+	 }
+		
+		
+		return categoriesScore[11];
+	}
+	
+	public  int chance(int[] random_int) {
+		categoriesScore[12] = 0;
+		for (int i = 0;i < 5; i++) {
+		 categoriesScore[12] += random_int[i];
+	 }	
+		return categoriesScore[12];
+	}
+	
+	public static int getMaxValue(int[] numbers){
+		  int maxValue = numbers[0];
+		  for(int i=1;i < numbers.length;i++){
+		    if(numbers[i] > maxValue){
+		      maxValue = numbers[i];
+		    }
+		  }
+		  return maxValue;
+		}
+	public static int getMinValue(int[] numbers){
+		  int minValue = numbers[0];
+		  for(int i=1;i<numbers.length;i++){
+		    if(numbers[i] < minValue){
+		      minValue = numbers[i];
+		    }
+		  }
+		  return minValue;
+		}
 	public static void main(String args[]) {
 		YahtzeeFrame yahtzee = new YahtzeeFrame();
 		
