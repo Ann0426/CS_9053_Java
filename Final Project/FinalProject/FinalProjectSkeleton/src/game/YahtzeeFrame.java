@@ -67,7 +67,7 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	int min = 1;
 	int[] random_int = new int[N_DICE]; 
 	int count = 0 ,lowbonus = 0,grandTotal ;
-	
+	ButtonGroup group;
 	static int[] categoriesScore = new int[N_SCORING_CATEGORIES];
 	int BONUS_VALUE = 35;
 	int BONUS_THRESHOLD = 63;
@@ -200,7 +200,7 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 	       Large.addActionListener(listener);
 	       Yahtzee = new JRadioButton("Yahtzee");
 	       Yahtzee.addActionListener(listener);
-	       ButtonGroup group = new ButtonGroup();
+	       group = new ButtonGroup();
 	       group.add(ThreeOfKind);
 	       group.add(FourOfKind);
 	       group.add(Full);
@@ -361,6 +361,13 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
       	  	     BonTxt.setText("Score: " + lowbonus);
       	  	     lowSecTxt.setText("Score: " +chance(random_int));
       	  	     GraToTxt.setText("Score: " +  sum );
+//      	  	     ThreeOfKind.setSelected(false);
+//      	  	     FourOfKind.setSelected(false);
+//      	  	     Full.setSelected(false);
+//      	  	     Small.setSelected(false);
+//      	  	     Large.setSelected(false);
+//      	  	     Yahtzee.setSelected(false);
+      	  	     group.clearSelection();
 	          }
 	       }
 	 
@@ -461,10 +468,25 @@ public class YahtzeeFrame extends JFrame  implements YahtzeeConstant{
 
 	        	        // Create a Score object and send to the server
 	        	        ScoreRecord  s =
-	        	          new ScoreRecord( nameFieldStr,categoriesScore[0], categoriesScore[1], categoriesScore[2]
-	        	        		  ,categoriesScore[3],
+	        	          new ScoreRecord( nameFieldStr,
+	        	        		  categoriesScore[0], 
+	        	        		  categoriesScore[1], 
+	        	        		  categoriesScore[2],
+	        	        		  categoriesScore[3],
 	        	        		  categoriesScore[4],
-	        	        		  categoriesScore[5],sum,Bonus,Grandtotal,categoriesScore[6],categoriesScore[7],categoriesScore[8],categoriesScore[9],categoriesScore[10],categoriesScore[11],lowbonus,categoriesScore[12],grandTotal);
+	        	        		  categoriesScore[5],
+	        	        		  sum,
+	        	        		  Bonus,
+	        	        		  Grandtotal,
+	        	        		  categoriesScore[6],
+	        	        		  categoriesScore[7],
+	        	        		  categoriesScore[8],
+	        	        		  categoriesScore[9],
+	        	        		  categoriesScore[10],
+	        	        		  categoriesScore[11],
+	        	        		  lowbonus,
+	        	        		  categoriesScore[12],
+	        	        		  grandTotal);
 	        	        toServer.writeObject(s);
 	        	      }
 	        	      catch (IOException ex) {
